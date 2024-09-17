@@ -1,0 +1,21 @@
+{% extends "oscar/layout.html" %}
+{% block title %}Choose a payment method{% endblock %}
+
+{% block content %}
+    <h2>Select Payment Method</h2>
+    <form method="POST" action="{% url 'checkout:preview' %}">
+        {% csrf_token %}
+        <ul>
+            {% for method in payment_methods %}
+                <li>
+                    <input type="radio" id="{{ method.code }}" name="payment_method" value="{{ method.code }}">
+                    <label for="{{ method.code }}">
+                        <img src="{{ method.logoUrl }}" alt="{{ method.name }}" width="50">
+                        {{ method.name }}
+                    </label>
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="submit">Continue to Preview</button>
+    </form>
+{% endblock %}
