@@ -10,6 +10,6 @@ from django.views.decorators.csrf import csrf_exempt
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True, schema=schema))),
-    path('checkout/', include('custom_checkout.urls')),
+    path('checkout/', include('payments.urls')),
     path('', include(apps.get_app_config('oscar').urls[0]))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

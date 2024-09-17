@@ -1,48 +1,32 @@
-{% extends "oscar/checkout/checkout.html" %}
-{% load i18n %}
+{% extends "oscar/checkout/payment_details.html" %}
 
-{% block title %}
-    {% trans "Payment details" %} | {{ block.super }}
-{% endblock %}
-
-{% block checkout_nav %}
-    {% include 'oscar/checkout/nav.html' with step=3 %}
-{% endblock %}
-
-{% block checkout_title %}{% trans "Enter payment details" %}{% endblock %}
-
-{% block order_contents %}{% endblock %}
-{% block shipping_address %}{% endblock %}
-{% block shipping_method %}{% endblock %}
-{% block payment_method %}{% endblock %}		
 
 {% block payment_details %}
     {% block payment_details_content %}
   <div class="container">
-    <h1>{% trans "Choose your payment method" %}</h1>
+    <h1>Pasirinkite banką</h1>
     <form method="post" action="{% url 'checkout:payment-details' %}">
       {% csrf_token %}
       
       <div>
-        <h3>{% trans "Payment Methods" %}</h3>
+        <h3>Montonio</h3>
         <ul>
-          {% for method in payment_methods %}
+          {% for details in payment_methods.paymentInitiation.setup.LT.paymentMethods %}
             <li>
-              <label>
-                <input type="radio" name="payment_method" value="{{ method.code }}">
-                <img src="{{ method.logoUrl }}" alt="{{ method.name }}">
-                {{ method.name }}
+              <input type="radio" name="selected_bank_code" value="{{ details.code }}" id="{{ details.code }}">
+              <label for="{{ details.code }}">
+                <img src="{{ details.logoUrl }}" alt="{{ details.name }}">
+                {{ details.name }}
               </label>
             </li>
-          {% empty %}
-            <li>{% trans "No available payment methods" %}</li>
           {% endfor %}
         </ul>
       </div>
-      
+	   <button type="submit">Tęsti</button>
 
     </form>
   </div>
-        <a id="view_preview" href="{% url 'checkout:preview' %}" class="btn btn-primary btn-lg">{% trans "Continue" %}</a>
+  {{ block.super }}
+        
     {% endblock payment_details_content %}
 {% endblock payment_details %}

@@ -1,0 +1,26 @@
+{% extends "oscar/checkout/preview.html" %}
+
+{% block place_order %}
+    <!-- Čia jūsų užsakymo suvestinės HTML struktūra -->
+
+    <h3>Mokėjimas</h3>
+    <form method="post" action="{% url 'checkout:preview' %}">
+        {% csrf_token %}
+        <ul>
+            {% for details in payment_methods.paymentInitiation.setup.LT.paymentMethods %}
+                <li>
+                    <label>
+                        <input type="radio" name="selected_bank_code" value="{{ details.code }}"
+                            {% if selected_bank_code == details.code %}checked{% endif %}>
+                        {{ details.name }}
+                    </label>
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="submit" class="btn btn-primary">Patvirtinti užsakymą</button>
+    </form>
+
+    <!-- Likusi užsakymo suvestinė -->
+    {{ block.super }}
+{% endblock %}
+

@@ -1,6 +1,11 @@
+from .views import CustomPreviewView, montonio_payment_notification
+
 from django.urls import path
-from .views import payment_methods_view
+
+app_name = 'payments'
 
 urlpatterns = [
-    path('payment-methods/', payment_methods_view, name='payment_methods'),
+    path('preview/', CustomPreviewView.as_view(), name='preview'),
+    path('notify/', montonio_payment_notification, name='montonio-notification'),
+
 ]

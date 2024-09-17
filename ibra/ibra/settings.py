@@ -16,6 +16,8 @@ from oscar.defaults import *
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECURE_SSL_REDIRECT = False
+X_FRAME_OPTIONS = 'ALLOWALL'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -26,7 +28,8 @@ SECRET_KEY = 'django-insecure-!+6t#n*+0k-_00ro43-cm!5j!d5uy51p=fx^-80w=k8gp)7c-p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['pasco.lt', 'www.pasco.lt', 'dg.pasco.lt',
+                 'localhost', '127.0.0.1', '192.168.88.32']
 
 
 # Application definition
@@ -85,7 +88,7 @@ INSTALLED_APPS = [
     'graphene_django',
     'corsheaders',
     'payments',
-    'custom_checkout',
+    # 'custom_checkout',
 ]
 
 SITE_ID = 1
@@ -231,12 +234,13 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-OSCAR_INITIAL_ORDER_STATUS = 'Pending'
-OSCAR_INITIAL_LINE_STATUS = 'Pending'
+OSCAR_INITIAL_ORDER_STATUS = 'PENDING'
+OSCAR_INITIAL_LINE_STATUS = 'PENDING'
 OSCAR_ORDER_STATUS_PIPELINE = {
-    'Pending': ('Being processed', 'Cancelled',),
-    'Being processed': ('Processed', 'Cancelled',),
-    'Cancelled': (),
+    'PENDING': ('BEING PROCESSED', 'CANCELLED',),
+    'BEING PROCESSED': ('PAID', 'CANCELLED',),
+    'PAID': (),  # Užsakymas baigtas, daugiau būsenų nereikia
+    'CANCELLED': (),
 }
 
 OSCAR_DEFAULT_CURRENCY = 'EUR'
