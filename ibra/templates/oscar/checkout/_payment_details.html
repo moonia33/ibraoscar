@@ -1,0 +1,32 @@
+{% extends "oscar/checkout/payment_details.html" %}
+
+
+{% block payment_details %}
+    {% block payment_details_content %}
+  <div class="container">
+    <h1>Pasirinkite banką</h1>
+    <form method="post" action="{% url 'checkout:payment-details' %}">
+      {% csrf_token %}
+      
+      <div>
+        <h3>Montonio</h3>
+        <ul>
+          {% for details in payment_methods.paymentInitiation.setup.LT.paymentMethods %}
+            <li>
+              <input type="radio" name="selected_bank_code" value="{{ details.code }}" id="{{ details.code }}">
+              <label for="{{ details.code }}">
+                <img src="{{ details.logoUrl }}" alt="{{ details.name }}">
+                {{ details.name }}
+              </label>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+	   <button type="submit">Tęsti</button>
+
+    </form>
+  </div>
+  {{ block.super }}
+        
+    {% endblock payment_details_content %}
+{% endblock payment_details %}

@@ -87,7 +87,8 @@ INSTALLED_APPS = [
     'acc',
     'graphene_django',
     'corsheaders',
-    'payments',
+    'montonio_payment',
+    # 'payments',
     # 'custom_checkout',
 ]
 
@@ -201,7 +202,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, "static"),
 ]
 
 # STATIC_ROOT nustatymas

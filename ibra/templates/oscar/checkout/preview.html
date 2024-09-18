@@ -1,26 +1,34 @@
-{% extends "oscar/checkout/preview.html" %}
+{% extends "oscar/checkout/checkout.html" %}
+{% load i18n %}
 
-{% block place_order %}
-    <!-- Čia jūsų užsakymo suvestinės HTML struktūra -->
-
-    <h3>Mokėjimas</h3>
-    <form method="post" action="{% url 'checkout:preview' %}">
-        {% csrf_token %}
-        <ul>
-            {% for details in payment_methods.paymentInitiation.setup.LT.paymentMethods %}
-                <li>
-                    <label>
-                        <input type="radio" name="selected_bank_code" value="{{ details.code }}"
-                            {% if selected_bank_code == details.code %}checked{% endif %}>
-                        {{ details.name }}
-                    </label>
-                </li>
-            {% endfor %}
-        </ul>
-        <button type="submit" class="btn btn-primary">Patvirtinti užsakymą</button>
-    </form>
-
-    <!-- Likusi užsakymo suvestinė -->
-    {{ block.super }}
+{% block title %}
+    {% trans "Order preview" %} | {{ block.super }}
 {% endblock %}
 
+{% block checkout_nav %}
+    {% include 'oscar/checkout/nav.html' with step=4 %}
+{% endblock %}
+
+{% block checkout_title %}
+    {% trans "Preview order" %}
+{% endblock %}
+
+{% block place_order %}
+    <form method="post" action="{% url 'checkout:preview' %}" id="place_order_form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="place_order" />
+
+        <div>
+            <h4>{% trans "Selected Bank" %}</h4>
+            <p>{{ selected_bank_code }}</p>
+        </div>
+
+        <div class="form-group clearfix">
+            <div class="row">
+                <div class="col-sm-3 offset-sm-9">
+                     <button id='place-order' type="submit" class="btn btn-primary btn-lg btn-block" data-loading-text="{% trans 'Submitting...' %}">{% trans "Place order" %}</button>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock place_order %}

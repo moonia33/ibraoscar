@@ -1,32 +1,38 @@
-{% extends "oscar/checkout/payment_details.html" %}
+{% extends "oscar/checkout/checkout.html" %}
+{% load i18n %}
 
+{% block title %}
+    {% trans "Payment methods" %} | {{ block.super }}
+{% endblock %}
 
-{% block payment_details %}
-    {% block payment_details_content %}
-  <div class="container">
-    <h1>Pasirinkite banką</h1>
-    <form method="post" action="{% url 'checkout:payment-details' %}">
-      {% csrf_token %}
-      
-      <div>
-        <h3>Montonio</h3>
+{% block checkout_nav %}
+    {% include 'oscar/checkout/nav.html' with step=3 %}
+{% endblock %}
+
+{% block checkout_title %}{% trans "Select payment method" %}{% endblock %}
+
+{% block payment_method %}
+    <form method="post" action="{% url 'payment-details' %}">
+        {% csrf_token %}
+        <h4>{% trans "Choose your bank" %}</h4>
         <ul>
-          {% for details in payment_methods.paymentInitiation.setup.LT.paymentMethods %}
-            <li>
-              <input type="radio" name="selected_bank_code" value="{{ details.code }}" id="{{ details.code }}">
-              <label for="{{ details.code }}">
-                <img src="{{ details.logoUrl }}" alt="{{ details.name }}">
-                {{ details.name }}
-              </label>
-            </li>
-          {% endfor %}
+            {% for method, details in payment_methods.items %}
+                {% if method == 'paymentInitiation' %}
+                    {% for bank in details.setup.LT.paymentMethods %}
+                        <li>
+                            <label>
+                                <input type="radio" name="selected_bank_code" value="{{ bank.code }}"
+                                    {% if selected_bank_code == bank.code %}checked{% endif %}>
+                                <img src="{{ bank.logoUrl }}" alt="{{ bank.name }}" width="100">
+                                {{ bank.name }}
+                            </label>
+                        </li>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
         </ul>
-      </div>
-	   <button type="submit">Tęsti</button>
-
+		<pre>{{ payment_methods | safe }}</pre>  <!-- Patikriname, kas gaunama iš serverio -->
+        <pre>{{ selected_bank_code | safe }}</pre> <!-- Patikriname sesijos duomenis -->
+        <button type="submit" class="btn btn-primary">{% trans "Continue to Order Preview" %}</button>
     </form>
-  </div>
-  {{ block.super }}
-        
-    {% endblock payment_details_content %}
-{% endblock payment_details %}
+{% endblock %}

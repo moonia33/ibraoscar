@@ -1,107 +1,86 @@
 import json
-from oscar.apps.checkout.views import PaymentDetailsView
-from payments.montonio import MontonioPayment
+from django.conf import settings
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib import messages
 import jwt
-from django.conf import settings
+from oscar.apps.checkout.views import PaymentDetailsView
 from oscar.apps.order.models import Order
 from oscar.core.loading import get_class
-from django.urls import reverse
+from payments.montonio import MontonioPayment
 
 OrderNumberGenerator = get_class('order.utils', 'OrderNumberGenerator')
 
 
 class CustomPreviewView(PaymentDetailsView):
     """
-    Mokėjimų peržiūros vaizdas, kur vyksta banko pasirinkimas ir mokėjimo įvykdymas.
+    Vaizdas, kuriame vartotojas pasirenka mokėjimo būdą ir pateikia užsakymą.
     """
     preview = True
 
     def get_template_names(self):
-        """
-        Nustatome teisingą šabloną, jei jis nėra nurodytas tiesiogiai.
-        """
         return ["oscar/checkout/preview.html"]
 
     def get_context_data(self, **kwargs):
-        """
-        Pridedame Montonio mokėjimo būdus į kontekstą.
-        """
         context = super().get_context_data(**kwargs)
         montonio_payment = MontonioPayment()
-        context['payment_methods'] = montonio_payment.get_payment_methods(
-            'LT')  # Šalies kodas „LT“
-
-        # Gauname pasirinkto banko kodą iš sesijos
-        selected_bank_code = self.request.session.get(
-            'selected_bank_code', None)
-        context['selected_bank_code'] = selected_bank_code
-
+        context['payment_methods'] = montonio_payment.get_payment_methods()
+        context['selected_bank_code'] = self.request.session.get(
+            'selected_bank_code')
         return context
 
     def post(self, request, *args, **kwargs):
-        """
-        Užsakymo pateikimas su Montonio integracija arba banko pasirinkimas.
-        """
         selected_bank_code = request.POST.get('selected_bank_code')
         if not selected_bank_code:
             messages.error(request, "Prašome pasirinkti banką.")
             return self.render_to_response(self.get_context_data())
 
-        # Išsaugome pasirinktą banko kodą į sesiją
         request.session['selected_bank_code'] = selected_bank_code
-        request.session.modified = True  # Pažymime, kad sesija pakeista
-
-        # Sukuriame užsakymo pateikimo duomenų rinkinį (submission)
         submission = self.build_submission()
 
-        # Sugeneruojame užsakymo numerį
         order_number = OrderNumberGenerator(
         ).order_number(submission['basket'])
-
-        # Paruošiame užsakymo duomenis Montonio API
         order_data = {
             'number': order_number,
             'basket_total': submission['order_total'].incl_tax,
-            'basket': submission['basket'],
+            'preferred_bank_code': selected_bank_code,
+            'billing_address': submission['billing_address'],
+            'shipping_address': submission['shipping_address'],
+            'items': [{
+                'name': line.product.title,
+                'quantity': line.quantity,
+                'finalPrice': line.line_price_incl_tax
+            } for line in submission['basket'].all_lines()]
         }
 
         montonio_payment = MontonioPayment()
         return_url = self.request.build_absolute_uri('/checkout/thank-you/')
         notification_url = self.request.build_absolute_uri('/checkout/notify/')
 
-        # Sukuriame užsakymą Montonio API sistemoje
-        result = montonio_payment.create_order(
-            order_data,
-            return_url,
-            notification_url,
-            selected_bank_code
-        )
-
-        if 'paymentUrl' in result:
-            print(f"Redirecting to: {result['paymentUrl']}")
-            # Užšaldome krepšelį (basket freeze)
-            submission['basket'].freeze()
-            return redirect(result['paymentUrl'])
-        else:
-            print(f"Error in Montonio response: {result}")
-            messages.error(
-                request, "Klaida kuriant užsakymą Montonio sistemoje.")
-            return self.render_preview(request)
+        try:
+            result = montonio_payment.create_order(
+                order_data, return_url, notification_url)
+            if 'paymentUrl' in result:
+                submission['basket'].freeze()
+                return redirect(result['paymentUrl'])
+            else:
+                messages.error(
+                    request, "Klaida kuriant užsakymą Montonio sistemoje.")
+                return self.render_to_response(self.get_context_data())
+        except Exception as e:
+            messages.error(request, f"Klaida: {str(e)}")
+            return self.render_to_response(self.get_context_data())
 
 
 @csrf_exempt
 def montonio_payment_notification(request):
     """
-    Montonio webhook'as, skirtas pranešti apie mokėjimo būseną.
+    Webhook'as iš Montonio, skirtas pranešti apie mokėjimo būseną.
     """
-    # Pirmiausia išskaitome JSON duomenis iš kūno
     try:
         data = json.loads(request.body)
-        token = data.get('orderToken')  # Gauname 'orderToken' iš JSON objekto
+        token = data.get('orderToken')
     except (json.JSONDecodeError, KeyError):
         return JsonResponse({'error': 'Invalid JSON or missing orderToken'}, status=400)
 
@@ -118,5 +97,5 @@ def montonio_payment_notification(request):
             return JsonResponse({'status': 'ok'})
         else:
             return JsonResponse({'status': 'failed'}, status=400)
-    except jwt.InvalidTokenError:
-        return JsonResponse({'error': 'Invalid token'}, status=400)
+    except (jwt.InvalidTokenError, Order.DoesNotExist):
+        return JsonResponse({'error': 'Invalid token or order not found'}, status=400)
