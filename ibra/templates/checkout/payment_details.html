@@ -1,0 +1,15 @@
+<form method="post" action="{% url 'montonio_payments:payment-details' %}">
+    {% csrf_token %}
+    <h2>Pasirinkite mokėjimo būdą</h2>
+
+    <div>
+        {% for method, details in payment_methods.items %}
+            <label>
+                <input type="radio" name="selected_bank_code" value="{{ details.code }}" />
+                <img src="{{ details.logoUrl }}" alt="{{ details.name }}" /> {{ details.name }}
+            </label>
+        {% endfor %}
+    </div>
+
+    <button type="submit">Tęsti</button>
+</form>

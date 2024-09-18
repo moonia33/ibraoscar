@@ -1,0 +1,9 @@
+<h2>Peržiūrėkite savo užsakymą</h2>
+
+<p>Užsakymo numeris: {{ order_number }}</p>
+<p>Bendra suma: {{ order_total.incl_tax }}</p>
+
+<form method="post" action="{% url 'montonio_payments:preview' %}">
+    {% csrf_token %}
+    <button type="submit">Patvirtinti ir pereiti į mokėjimą</button>
+</form>

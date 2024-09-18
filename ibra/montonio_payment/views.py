@@ -12,6 +12,7 @@ class MontonioPaymentDetailsView(PaymentDetailsView):
     """
     Vaizdas, kuris apdoroja banko pasirinkimą ir nukreipia į užsakymo suvestinę.
     """
+    template_name = 'oscar/checkout/payment_details.html'
 
     def post(self, request, *args, **kwargs):
         # Patikriname, ar banko kodas buvo pasirinktas
@@ -28,7 +29,7 @@ class MontonioPaymentDetailsView(PaymentDetailsView):
         print(f"Banko kodas atnaujintas sesijoje: {selected_bank_code}")
 
         # Nukreipiame į užsakymo suvestinę (preview)
-        return redirect('checkout:preview')
+        return redirect('montonio_payments:preview')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -54,6 +55,7 @@ class MontonioOrderPreviewView(PaymentDetailsView):
     """
     Užsakymo peržiūros vaizdas, kuris pateikia vartotojo pasirinkimą ir leidžia patvirtinti užsakymą.
     """
+    template_name = 'oscar/checkout/preview.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -64,7 +66,7 @@ class MontonioOrderPreviewView(PaymentDetailsView):
         if not context['selected_bank_code']:
             messages.error(
                 self.request, "Banko kodas nerastas sesijoje. Grįžkite atgal ir pasirinkite banką.")
-            return redirect('checkout:payment-details')
+            return redirect('montonio_payments:payment-details')
 
         print(
             f"Banko kodas sesijoje (preview): {context['selected_bank_code']}")
@@ -90,7 +92,7 @@ class MontonioOrderPreviewView(PaymentDetailsView):
         if not selected_bank_code:
             messages.error(
                 self.request, "Banko kodas nerastas. Grįžkite atgal ir pasirinkite banką.")
-            return redirect('checkout:payment-details')
+            return redirect('montonio_payments:payment-details')
 
         try:
             # Paruošiame Montonio užsakymo duomenis

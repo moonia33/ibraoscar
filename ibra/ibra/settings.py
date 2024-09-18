@@ -258,3 +258,5 @@ MONTONIO_API_URL = 'https://sandbox-stargate.montonio.com/api'  # Sandbox aplink
 # Pakeiskite su realiais raktais
 MONTONIO_ACCESS_KEY = 'a6e99fdc-4f53-4aba-825e-b26b723f9448'
 MONTONIO_SECRET_KEY = 'A3a6hFc6LvXjaIPoDSFYhndHPakuI/1edwTSw1kIiY1v'
+RETURN_URL = 'https://www.pasco.lt:8000/checkout/thank-you/'
+NOTIFICATION_URL = 'https://www.pasco.lt:8000/checkout/notify/'
