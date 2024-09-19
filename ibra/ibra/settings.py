@@ -238,7 +238,8 @@ CORS_ALLOW_HEADERS = [
 OSCAR_INITIAL_ORDER_STATUS = 'PENDING'
 OSCAR_INITIAL_LINE_STATUS = 'PENDING'
 OSCAR_ORDER_STATUS_PIPELINE = {
-    'PENDING': ('BEING PROCESSED', 'CANCELLED',),
+    # Leiskite pereiti tiesiai į PAID
+    'PENDING': ('PAID', 'BEING PROCESSED', 'CANCELLED',),
     'BEING PROCESSED': ('PAID', 'CANCELLED',),
     'PAID': (),  # Užsakymas baigtas, daugiau būsenų nereikia
     'CANCELLED': (),
