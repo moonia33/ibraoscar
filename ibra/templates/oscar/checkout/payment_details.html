@@ -12,7 +12,7 @@
 {% block checkout_title %}{% trans "Select payment method" %}{% endblock %}
 
 {% block payment_method %}
-    <form method="post" action="{% url 'montonio_payments:payment-details' %}">
+    <form method="post" action="{% url 'montonio_payment:payment-details' %}">
         {% csrf_token %}
         <h4>{% trans "Choose your bank" %}</h4>
         <ul>

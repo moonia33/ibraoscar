@@ -15,7 +15,7 @@
 
 {% block place_order %}
 <pre>{{ selected_bank_code | safe }}</pre>
-    <form method="post" action="{% url 'montonio_payments:preview' %}" id="place_order_form">
+    <form method="post" action="{% url 'montonio_payment:preview' %}" id="place_order_form">
         {% csrf_token %}
         <input type="hidden" name="action" value="place_order" />
 
