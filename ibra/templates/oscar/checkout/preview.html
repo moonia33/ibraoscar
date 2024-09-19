@@ -14,14 +14,18 @@
 {% endblock %}
 
 {% block place_order %}
-<pre>{{ selected_bank_code | safe }}</pre>
     <form method="post" action="{% url 'montonio_payment:preview' %}" id="place_order_form">
         {% csrf_token %}
         <input type="hidden" name="action" value="place_order" />
 
         <div>
-            <h4>{% trans "Selected Bank" %}</h4>
-            <p>{{ selected_bank_code }}</p>
+             <h4>{% trans "Selected Bank" %}</h4>
+			 {% if bank_logo %}
+             <img src="{{ bank_logo }}" alt="{{ bank_name }}" style="max-width: 50px;">
+            {% endif %}
+            <!-- Rodykite banko pavadinimą -->
+            <p>{{ bank_name }}</p>
+            <p style="visibility: hidden;">{{ selected_bank_code }}</p>
         </div>
 
         <div class="form-group clearfix">

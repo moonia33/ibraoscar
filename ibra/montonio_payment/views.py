@@ -11,7 +11,7 @@ from django.views.generic import TemplateView  # Tinkamas importavimas
 from oscar.apps.order.models import Order
 from oscar.apps.order.utils import OrderNumberGenerator
 from oscar.apps.checkout import signals
-from .services import get_payment_methods, create_montonio_order
+from .services import get_payment_methods, create_montonio_order, get_bank_name_by_code
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from jwt.exceptions import InvalidTokenError
@@ -94,6 +94,23 @@ class MontonioOrderPreviewView(PaymentDetailsView):
             messages.error(
                 self.request, "Pasirinkimo sesijoje nėra. Grįžkite atgal.")
             return redirect('montonio_payment:payment-details')
+        selected_bank_code = self.request.session.get('selected_bank_code')
+        payment_methods = get_payment_methods()
+        bank_name = "Montonio"
+        bank_logo = ""
+
+        if selected_bank_code:
+            for method in payment_methods['paymentMethods']['paymentInitiation']['setup']['LT']['paymentMethods']:
+                if method['code'] == selected_bank_code:
+                    bank_name = method['name']
+                    bank_logo = method['logoUrl']
+                    break
+
+        # Pridėti banko informaciją į kontekstą
+        context['bank_name'] = bank_name
+        context['bank_logo'] = bank_logo
+        context['selected_bank_code'] = selected_bank_code
+
         return context
 
     def post(self, request, *args, **kwargs):
@@ -110,6 +127,8 @@ class MontonioOrderPreviewView(PaymentDetailsView):
             messages.error(request, "Prašome pasirinkti banką.")
             # Grąžiname redirect'ą atgal į payment-details
             return redirect('checkout:payment-details')
+
+        bank_name = get_bank_name_by_code(selected_bank_code)
 
         print(f"Selected bank code in session: {selected_bank_code}")
 
@@ -158,7 +177,7 @@ class MontonioOrderPreviewView(PaymentDetailsView):
             if order_response.get('paymentStatus') == 'PENDING':
                 print("Payment status is PENDING, saving source")
                 source_type, created = SourceType.objects.get_or_create(
-                    name='Montonio')
+                    name=bank_name)  # Banko pavadinimas kaip source type
                 source = Source(
                     source_type=source_type,
                     amount_allocated=submission['order_total'].incl_tax,
